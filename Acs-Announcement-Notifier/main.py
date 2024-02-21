@@ -1,3 +1,5 @@
+from email.mime.text import MIMEText
+
 import requests
 import bs4
 import smtplib
@@ -39,9 +41,9 @@ def scrape_sbp():
 
             if (h2_tag.get_text(strip=True) != sbp_last_h2 or em_tag.get_text(strip=True) != sbp_last_em or
                     p_tag.get_text(strip=True) != sbp_last_p):
-                send_email('ACS-Announcement',
-                           f'{h2_tag.get_text(strip=True)}\n{em_tag.get_text(strip=True)}\n\n'
-                           f'{p_tag.get_text(strip=True)}'.encode('utf-8'))
+                email_subject = 'ACS-Announcement'
+                email_body = f'{h2_tag.get_text(strip=True)}<br>{em_tag.get_text(strip=True)}<br><br>{p_tag.get_text(strip=True)}'
+                send_email(email_subject, email_body.encode('utf-8'))
                 sbp_last_h2 = h2_tag.get_text(strip=True)
                 sbp_last_em = em_tag.get_text(strip=True)
                 sbp_last_p = p_tag.get_text(strip=True)
@@ -54,10 +56,16 @@ def scrape_sbp():
 
 
 def send_email(subject, body):
+    msg = MIMEText(body, 'html', 'utf-8')
+
+    msg['Subject'] = subject
+    msg['From'] = 'acs.announcement@gmail.com'
+    msg['To'] = 'vule.dok@gmail.com'
+
     with smtplib.SMTP('smtp.gmail.com', 587) as server:
         server.starttls()
         server.login('acs.announcement@gmail.com', 'bgpo jzev azpz brco')
-        server.sendmail('acs.announcement@gmail.com', 'vule.dok@gmail.com', f'Subject: {subject}\n\n{body}')
+        server.sendmail('acs.announcement@gmail.com', 'vule.dok@gmail.com', msg.as_string())
 
 
 if __name__ == "__main__":
