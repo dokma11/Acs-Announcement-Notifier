@@ -78,11 +78,12 @@ def format_response(response, last_h2, last_em, last_p):
             email_body = f'{h2_tag.get_text(strip=True)}<br>{em_tag.get_text(strip=True)}<br><br>{p_tag.get_text(strip=True)}'
             send_email(email_subject, email_body.encode('utf-8'))
             print('Email sent')
-            return h2_tag.get_text(strip=True), em_tag.get_text(strip=True), p_tag.get_text(strip=True)
         else:
             print('There are no new announcements')
+        return h2_tag.get_text(strip=True), em_tag.get_text(strip=True), p_tag.get_text(strip=True)
     else:
         print('No <div> found')
+        return None, None, None
 
 
 def send_email(subject, body):
@@ -100,5 +101,6 @@ def send_email(subject, body):
 
 if __name__ == "__main__":
     scrape_sbp()
+    print('\n')
     scrape_iis()
-    scrape_nais()
+    #scrape_nais()
