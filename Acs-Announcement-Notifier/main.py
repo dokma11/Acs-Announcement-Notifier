@@ -14,14 +14,14 @@ def scrape_sbp(sbp_as):
     sbp_announcement_array = sbp_as.split('|')
 
     sbp_last_h2 = sbp_announcement_array[0]
-    print('SBP prvi string ', sbp_last_h2)
+    print('SBP header: ', sbp_last_h2)
 
     sbp_last_em = sbp_announcement_array[1]
-    print('SBP drugi string ', sbp_last_em)
+    print('SBP emphasis: ', sbp_last_em)
 
     if len(sbp_announcement_array) > 2:
         sbp_last_p = sbp_announcement_array[2]
-        print('SBP treci string ', sbp_last_p)
+        print('SBP paragraph: ', sbp_last_p)
     else:
         sbp_last_p = ''
 
@@ -39,14 +39,14 @@ def scrape_iis(iis_as):
     iis_announcement_array = iis_as.split('|')
 
     iis_last_h2 = iis_announcement_array[0]
-    print('IIS prvi string ', iis_last_h2)
+    print('IIS header: ', iis_last_h2)
 
     iis_last_em = iis_announcement_array[1]
-    print('IIS drugi string ', iis_last_em)
+    print('IIS emphasis: ', iis_last_em)
 
     if len(iis_announcement_array) > 2:
         iis_last_p = iis_announcement_array[2]
-        print('IIS treci string ', iis_last_p)
+        print('IIS paragraph: ', iis_last_p)
     else:
         iis_last_p = ''
 
@@ -58,11 +58,22 @@ def scrape_iis(iis_as):
         print('Error:', response.status_code)
 
 
-def scrape_nais():
+def scrape_nais(nais_as):
     nais_url = 'http://www.acs.uns.ac.rs/sr/nais'
-    nais_last_h2 = ''
-    nais_last_em = ''
-    nais_last_p = ''
+
+    nais_announcement_array = nais_as.split('|')
+
+    nais_last_h2 = nais_announcement_array[0]
+    print('NAIS header: ', nais_last_h2)
+
+    nais_last_em = nais_announcement_array[1]
+    print('NAIS emphasis: ', nais_last_em)
+
+    if len(nais_announcement_array) > 2:
+        nais_last_p = nais_announcement_array[2]
+        print('NAIS paragraph: ', nais_last_p)
+    else:
+        nais_last_p = ''
 
     response = requests.get(nais_url)
 
@@ -190,7 +201,11 @@ def lambda_handler(event, context):
         iis_announcement_state = iis_item.get('announcement_state', 'N/A')
         scrape_iis(iis_announcement_state)
 
+#        print('\n')
+
+#        nais_item = items[2]
+#        nais_announcement_state = nais_item.get('announcement_state', 'N/A')
+#        scrape_nais(nais_announcement_state)
+
     else:
         print("No items found")
-
-    # scrape_nais()
