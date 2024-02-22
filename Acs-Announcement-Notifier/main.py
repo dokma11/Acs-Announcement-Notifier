@@ -32,6 +32,20 @@ def scrape_iis():
         print('Error:', response.status_code)
 
 
+def scrape_nais():
+    nais_url = 'http://www.acs.uns.ac.rs/sr/nais'
+    nais_last_h2 = ''
+    nais_last_em = ''
+    nais_last_p = ''
+
+    response = requests.get(nais_url)
+
+    if response.status_code == 200:
+        nais_last_h2, nais_last_em, nais_last_p = format_response(response, nais_last_h2, nais_last_em, nais_last_p)
+    else:
+        print('Error:', response.status_code)
+
+
 def format_response(response, last_h2, last_em, last_p):
     soup = bs4.BeautifulSoup(response.text, 'html.parser')
     content_div = soup.find('div', class_='view-content')
@@ -85,5 +99,6 @@ def send_email(subject, body):
 
 
 if __name__ == "__main__":
-    #scrape_sbp()
+    scrape_sbp()
     scrape_iis()
+    scrape_nais()
