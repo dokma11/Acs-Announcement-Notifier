@@ -2,32 +2,58 @@ from email.mime.text import MIMEText
 import requests
 import bs4
 import smtplib
+import boto3
+
+dynamodb_client = boto3.resource('dynamodb')
+table = dynamodb_client.Table('LastAnnouncement')
 
 
-def scrape_sbp():
+def scrape_sbp(sbp_as):
     sbp_url = 'http://www.acs.uns.ac.rs/sr/sbp'
-    sbp_last_h2 = '[ASVSP, BP1, SBP] Usmeni ispit - raspored u terminu'
-    sbp_last_em = 'Arhitekture sistema velikih skupova podataka - 	10. Februar 2024'
-    sbp_last_p = 'Usmeni ispit biće održan u ponedeljak 12. 1. 2024. u laboratoriji MIA2-2 prema priloženom rasporedu.'
+
+    sbp_announcement_array = sbp_as.split('|')
+
+    sbp_last_h2 = sbp_announcement_array[0]
+    print('SBP prvi string ', sbp_last_h2)
+
+    sbp_last_em = sbp_announcement_array[1]
+    print('SBP drugi string ', sbp_last_em)
+
+    if len(sbp_announcement_array) > 2:
+        sbp_last_p = sbp_announcement_array[2]
+        print('SBP treci string ', sbp_last_p)
+    else:
+        sbp_last_p = ''
 
     response = requests.get(sbp_url)
 
     if response.status_code == 200:
-        sbp_last_h2, sbp_last_em, sbp_last_p = format_response(response, sbp_last_h2, sbp_last_em, sbp_last_p)
+        format_response(response, sbp_last_h2, sbp_last_em, sbp_last_p, 'sbp')
     else:
         print('Error:', response.status_code)
 
 
-def scrape_iis():
+def scrape_iis(iis_as):
     iis_url = 'http://www.acs.uns.ac.rs/sr/ism'
-    iis_last_h2 = 'Raspored polaganja usmenog ispita kod prof. Slavica Kordić za 21.2.2024.'
-    iis_last_em = 'Baze podataka 1 - Informacioni inženjering - 	20. Februar 2024'
-    iis_last_p = ''
+
+    iis_announcement_array = iis_as.split('|')
+
+    iis_last_h2 = iis_announcement_array[0]
+    print('IIS prvi string ', iis_last_h2)
+
+    iis_last_em = iis_announcement_array[1]
+    print('IIS drugi string ', iis_last_em)
+
+    if len(iis_announcement_array) > 2:
+        iis_last_p = iis_announcement_array[2]
+        print('IIS treci string ', iis_last_p)
+    else:
+        iis_last_p = ''
 
     response = requests.get(iis_url)
 
     if response.status_code == 200:
-        iis_last_h2, iis_last_em, iis_last_p = format_response(response, iis_last_h2, iis_last_em, iis_last_p)
+        format_response(response, iis_last_h2, iis_last_em, iis_last_p, 'iis')
     else:
         print('Error:', response.status_code)
 
@@ -41,12 +67,12 @@ def scrape_nais():
     response = requests.get(nais_url)
 
     if response.status_code == 200:
-        nais_last_h2, nais_last_em, nais_last_p = format_response(response, nais_last_h2, nais_last_em, nais_last_p)
+        format_response(response, nais_last_h2, nais_last_em, nais_last_p, 'nais')
     else:
         print('Error:', response.status_code)
 
 
-def format_response(response, last_h2, last_em, last_p):
+def format_response(response, last_h2, last_em, last_p, subject_for):
     soup = bs4.BeautifulSoup(response.text, 'html.parser')
     content_div = soup.find('div', class_='view-content')
 
@@ -61,7 +87,6 @@ def format_response(response, last_h2, last_em, last_p):
             print('No <h2> tag found within the <div>')
 
         if em_tag:
-            # Radi prikaza samo treba fromatirati, ako bude i bilo neophodno da se bilo sta prikaze
             print(em_tag.get_text(strip=True))
         else:
             print('No <em> tag found within the <div>')
@@ -70,7 +95,6 @@ def format_response(response, last_h2, last_em, last_p):
             print(p_tag.get_text(strip=True))
         else:
             print('No <p> tag found within the <div>')
-        # Pitanje je da li treba i prilog recimo dodati, mozda da se pristupi direktno sa mejla?
 
         if (h2_tag.get_text(strip=True) != last_h2 or em_tag.get_text(strip=True) != last_em or
                 p_tag.get_text(strip=True) != last_p):
@@ -78,12 +102,64 @@ def format_response(response, last_h2, last_em, last_p):
             email_body = f'{h2_tag.get_text(strip=True)}<br>{em_tag.get_text(strip=True)}<br><br>{p_tag.get_text(strip=True)}'
             send_email(email_subject, email_body.encode('utf-8'))
             print('Email sent')
+
+            current_state = f"{last_h2}|{last_em}|{last_p}"
+            next_state = f"{h2_tag.get_text(strip=True)}|{em_tag.get_text(strip=True)}|{p_tag.get_text(strip=True)}"
+
+            if subject_for == 'sbp':
+                # Azuirarnje sa id-jem za sbp
+                table.delete_item(
+                    Key={
+                        'announcement_state': current_state,
+                        'announcement_id': 0
+                    }
+                )
+
+                table.put_item(
+                    Item={
+                        'announcement_state': next_state,
+                        'announcement_id': 0
+                    }
+                )
+
+            if subject_for == 'iis':
+                # Azuirarnje sa id-jem za iis
+                table.delete_item(
+                    Key={
+                        'announcement_state': current_state,
+                        'announcement_id': 1
+                    }
+                )
+
+                table.put_item(
+                    Item={
+                        'announcement_state': next_state,
+                        'announcement_id': 1
+                    }
+                )
+
+            if subject_for == 'nais':
+                # Azuirarnje sa id-jem za nais
+                table.delete_item(
+                    Key={
+                        'announcement_state': current_state,
+                        'announcement_id': 2
+                    }
+                )
+
+                table.put_item(
+                    Item={
+                        'announcement_state': next_state,
+                        'announcement_id': 2
+                    }
+                )
+
+            print('Prosao je ova sranja sa key i to')
+
         else:
             print('There are no new announcements')
-        return h2_tag.get_text(strip=True), em_tag.get_text(strip=True), p_tag.get_text(strip=True)
     else:
         print('No <div> found')
-        return None, None, None
 
 
 def send_email(subject, body):
@@ -99,8 +175,22 @@ def send_email(subject, body):
         server.sendmail('acs.announcement@gmail.com', 'vule.dok@gmail.com', msg.as_string())
 
 
-if __name__ == "__main__":
-    scrape_sbp()
-    print('\n')
-    scrape_iis()
-    #scrape_nais()
+def lambda_handler(event, context):
+    scan_response = table.scan()
+
+    if 'Items' in scan_response:
+        items = scan_response['Items']
+        sbp_item = items[1]
+        sbp_announcement_state = sbp_item.get('announcement_state', 'N/A')
+        scrape_sbp(sbp_announcement_state)
+
+        print('\n')
+
+        iis_item = items[0]
+        iis_announcement_state = iis_item.get('announcement_state', 'N/A')
+        scrape_iis(iis_announcement_state)
+
+    else:
+        print("No items found")
+
+    # scrape_nais()
