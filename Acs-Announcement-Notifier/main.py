@@ -111,8 +111,9 @@ def format_response(response, last_h2, last_em, last_p, subject_for):
                 p_tag.get_text(strip=True) != last_p):
             email_subject = 'ACS-Announcement'
             email_body = f'{h2_tag.get_text(strip=True)}<br>{em_tag.get_text(strip=True)}<br><br>{p_tag.get_text(strip=True)}'
-            send_email(email_subject, email_body.encode('utf-8'))
-            print('Email sent')
+            send_email(email_subject, email_body.encode('utf-8'), 'vule.dok@gmail.com')
+            send_email(email_subject, email_body.encode('utf-8'), 'kuzminacn@gmail.com')
+            print('Emails sent')
 
             current_state = f"{last_h2}|{last_em}|{last_p}"
             next_state = f"{h2_tag.get_text(strip=True)}|{em_tag.get_text(strip=True)}|{p_tag.get_text(strip=True)}"
@@ -173,17 +174,17 @@ def format_response(response, last_h2, last_em, last_p, subject_for):
         print('No <div> found')
 
 
-def send_email(subject, body):
+def send_email(subject, body, recipient):
     msg = MIMEText(body, 'html', 'utf-8')
 
     msg['Subject'] = subject
     msg['From'] = 'acs.announcement@gmail.com'
-    msg['To'] = 'vule.dok@gmail.com'
+    msg['To'] = recipient
 
     with smtplib.SMTP('smtp.gmail.com', 587) as server:
         server.starttls()
         server.login('acs.announcement@gmail.com', 'bgpo jzev azpz brco')
-        server.sendmail('acs.announcement@gmail.com', 'vule.dok@gmail.com', msg.as_string())
+        server.sendmail('acs.announcement@gmail.com', recipient, msg.as_string())
 
 
 def lambda_handler(event, context):
