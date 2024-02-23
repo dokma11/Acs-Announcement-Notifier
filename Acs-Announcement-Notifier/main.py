@@ -1,3 +1,4 @@
+from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import requests
 import bs4
@@ -96,13 +97,57 @@ def format_response(response, last_h2, last_em, last_p, subject_for):
 
         if (h2_tag.get_text(strip=True) != last_h2 or em_tag.get_text(strip=True) != last_em or
                 p_tag.get_text(strip=True) != last_p):
+
+            li_tag = content_div.find('li', class_='upload_attachments first last')
+
+            if li_tag:
+                link = li_tag.find('a').get('href')
+                detailed_response = requests.get(f"http://www.acs.uns.ac.rs{link}")
+
+                if detailed_response.status_code == 200:
+                    detailed_soup = bs4.BeautifulSoup(detailed_response.text, 'html.parser')
+                    detailed_content_div = detailed_soup.find('div', class_='node clear-block')
+
+                    if detailed_content_div:
+                        p_tag = detailed_content_div.find('p')
+
+                        if p_tag:
+                            print(p_tag.get_text(strip=True))
+                        else:
+                            print('No <p> tag found within the <div>')
+
+                        a_tag = detailed_content_div.find('a').get('href')
+
+                        if a_tag:
+                            print(a_tag)
+                            encoded_url = a_tag.replace(' ', '%20')
+                        else:
+                            print('No <a> tag found within the <div>')
+                            encoded_url = ''
+                    else:
+                        print('No <div> found')
+                        encoded_url = ''
+                else:
+                    print('Error with detailed response: ', detailed_response.status_code)
+                    encoded_url = ''
+
+            else:
+                print('No link found')
+                encoded_url = ''
+
             email_subject = 'ACS-Announcement'
-            email_body = f'{h2_tag.get_text(strip=True)}<br>{em_tag.get_text(strip=True)}<br><br>{p_tag.get_text(strip=True)}'
+            email_body = (f'{h2_tag.get_text(strip=True)}<br>{em_tag.get_text(strip=True)}<br><br>'
+                          f'{p_tag.get_text(strip=True)}<br><br>{encoded_url}')
+
             send_email(email_subject, email_body.encode('utf-8'), 'vule.dok@gmail.com')
             send_email(email_subject, email_body.encode('utf-8'), 'kuzminacn@gmail.com')
             print('Emails sent')
 
             current_state = f"{last_h2}|{last_em}|{last_p}"
+            # Have to get less detailed tags so that the comparisons would work properly
+            p_tag = content_div.find('p')
+            h2_tag = content_div.find('h2')
+            em_tag = content_div.find('em')
             next_state = f"{h2_tag.get_text(strip=True)}|{em_tag.get_text(strip=True)}|{p_tag.get_text(strip=True)}"
 
             if subject_for == 'sbp':
@@ -159,11 +204,13 @@ def format_response(response, last_h2, last_em, last_p, subject_for):
 
 
 def send_email(subject, body, recipient):
-    msg = MIMEText(body, 'html', 'utf-8')
+    msg = MIMEMultipart()
 
     msg['Subject'] = subject
     msg['From'] = 'acs.announcement@gmail.com'
     msg['To'] = recipient
+
+    msg.attach(MIMEText(body.decode('utf-8'), 'html', 'utf-8'))
 
     with smtplib.SMTP('smtp.gmail.com', 587) as server:
         server.starttls()
