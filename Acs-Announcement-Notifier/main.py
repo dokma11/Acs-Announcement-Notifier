@@ -12,16 +12,11 @@ def scrape_sbp(sbp_as):
     sbp_url = 'http://www.acs.uns.ac.rs/sr/sbp'
 
     sbp_announcement_array = sbp_as.split('|')
-
     sbp_last_h2 = sbp_announcement_array[0]
-    print('SBP header: ', sbp_last_h2)
-
     sbp_last_em = sbp_announcement_array[1]
-    print('SBP emphasis: ', sbp_last_em)
 
     if len(sbp_announcement_array) > 2:
         sbp_last_p = sbp_announcement_array[2]
-        print('SBP paragraph: ', sbp_last_p)
     else:
         sbp_last_p = ''
 
@@ -37,16 +32,11 @@ def scrape_iis(iis_as):
     iis_url = 'http://www.acs.uns.ac.rs/sr/ism'
 
     iis_announcement_array = iis_as.split('|')
-
     iis_last_h2 = iis_announcement_array[0]
-    print('IIS header: ', iis_last_h2)
-
     iis_last_em = iis_announcement_array[1]
-    print('IIS emphasis: ', iis_last_em)
 
     if len(iis_announcement_array) > 2:
         iis_last_p = iis_announcement_array[2]
-        print('IIS paragraph: ', iis_last_p)
     else:
         iis_last_p = ''
 
@@ -64,14 +54,10 @@ def scrape_nais(nais_as):
     nais_announcement_array = nais_as.split('|')
 
     nais_last_h2 = nais_announcement_array[0]
-    print('NAIS header: ', nais_last_h2)
-
     nais_last_em = nais_announcement_array[1]
-    print('NAIS emphasis: ', nais_last_em)
 
     if len(nais_announcement_array) > 2:
         nais_last_p = nais_announcement_array[2]
-        print('NAIS paragraph: ', nais_last_p)
     else:
         nais_last_p = ''
 
@@ -119,7 +105,6 @@ def format_response(response, last_h2, last_em, last_p, subject_for):
             next_state = f"{h2_tag.get_text(strip=True)}|{em_tag.get_text(strip=True)}|{p_tag.get_text(strip=True)}"
 
             if subject_for == 'sbp':
-                # Azuirarnje sa id-jem za sbp
                 table.delete_item(
                     Key={
                         'announcement_state': current_state,
@@ -135,7 +120,6 @@ def format_response(response, last_h2, last_em, last_p, subject_for):
                 )
 
             if subject_for == 'iis':
-                # Azuirarnje sa id-jem za iis
                 table.delete_item(
                     Key={
                         'announcement_state': current_state,
@@ -151,7 +135,6 @@ def format_response(response, last_h2, last_em, last_p, subject_for):
                 )
 
             if subject_for == 'nais':
-                # Azuirarnje sa id-jem za nais
                 table.delete_item(
                     Key={
                         'announcement_state': current_state,
@@ -166,7 +149,7 @@ def format_response(response, last_h2, last_em, last_p, subject_for):
                     }
                 )
 
-            print('Prosao je ova sranja sa key i to')
+            print('Data updates went well')
 
         else:
             print('There are no new announcements')
