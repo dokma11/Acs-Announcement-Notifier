@@ -54,11 +54,12 @@ def scrape_nais(nais_as):
     nais_announcement_array = nais_as.split('|')
 
     nais_last_h2 = nais_announcement_array[0]
-    nais_last_em = nais_announcement_array[1]
 
-    if len(nais_announcement_array) > 2:
+    if len(nais_announcement_array) > 1:
+        nais_last_em = nais_announcement_array[1]
         nais_last_p = nais_announcement_array[2]
     else:
+        nais_last_em = ''
         nais_last_p = ''
 
     response = requests.get(nais_url)
@@ -185,11 +186,11 @@ def lambda_handler(event, context):
         iis_announcement_state = iis_item.get('announcement_state', 'N/A')
         scrape_iis(iis_announcement_state)
 
-#        print('\n')
+        print('\n')
 
-#        nais_item = items[2]
-#        nais_announcement_state = nais_item.get('announcement_state', 'N/A')
-#        scrape_nais(nais_announcement_state)
+        nais_item = items[2]
+        nais_announcement_state = nais_item.get('announcement_state', 'N/A')
+        scrape_nais(nais_announcement_state)
 
     else:
         print("No items found")
