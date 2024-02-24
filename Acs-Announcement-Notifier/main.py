@@ -9,64 +9,21 @@ dynamodb_client = boto3.resource('dynamodb')
 table = dynamodb_client.Table('LastAnnouncement')
 
 
-def scrape_sbp(sbp_as):
-    sbp_url = 'http://www.acs.uns.ac.rs/sr/sbp'
+def scrape_course(course_as, course_url, subject_for):
+    course_announcement_array = course_as.split('|')
 
-    sbp_announcement_array = sbp_as.split('|')
-    sbp_last_h2 = sbp_announcement_array[0]
-    sbp_last_em = sbp_announcement_array[1]
+    course_last_h2 = course_announcement_array[0]
+    course_last_em = course_announcement_array[1]
 
-    if len(sbp_announcement_array) > 2:
-        sbp_last_p = sbp_announcement_array[2]
+    if len(course_announcement_array) > 2:
+        course_last_p = course_announcement_array[2]
     else:
-        sbp_last_p = ''
+        course_last_p = ''
 
-    response = requests.get(sbp_url)
+    response = requests.get(course_url)
 
     if response.status_code == 200:
-        format_response(response, sbp_last_h2, sbp_last_em, sbp_last_p, 'sbp')
-    else:
-        print('Error:', response.status_code)
-
-
-def scrape_iis(iis_as):
-    iis_url = 'http://www.acs.uns.ac.rs/sr/ism'
-
-    iis_announcement_array = iis_as.split('|')
-    iis_last_h2 = iis_announcement_array[0]
-    iis_last_em = iis_announcement_array[1]
-
-    if len(iis_announcement_array) > 2:
-        iis_last_p = iis_announcement_array[2]
-    else:
-        iis_last_p = ''
-
-    response = requests.get(iis_url)
-
-    if response.status_code == 200:
-        format_response(response, iis_last_h2, iis_last_em, iis_last_p, 'iis')
-    else:
-        print('Error:', response.status_code)
-
-
-def scrape_nais(nais_as):
-    nais_url = 'http://www.acs.uns.ac.rs/sr/nais'
-
-    nais_announcement_array = nais_as.split('|')
-
-    nais_last_h2 = nais_announcement_array[0]
-
-    if len(nais_announcement_array) > 1:
-        nais_last_em = nais_announcement_array[1]
-        nais_last_p = nais_announcement_array[2]
-    else:
-        nais_last_em = ''
-        nais_last_p = ''
-
-    response = requests.get(nais_url)
-
-    if response.status_code == 200:
-        format_response(response, nais_last_h2, nais_last_em, nais_last_p, 'nais')
+        format_response(response, course_last_h2, course_last_em, course_last_p, subject_for)
     else:
         print('Error:', response.status_code)
 
@@ -225,19 +182,17 @@ def lambda_handler(event, context):
         items = scan_response['Items']
         sbp_item = items[1]
         sbp_announcement_state = sbp_item.get('announcement_state', 'N/A')
-        scrape_sbp(sbp_announcement_state)
-
-        print('\n')
+        scrape_course(sbp_announcement_state, 'http://www.acs.uns.ac.rs/sr/sbp', 'sbp')
 
         iis_item = items[0]
         iis_announcement_state = iis_item.get('announcement_state', 'N/A')
-        scrape_iis(iis_announcement_state)
+        scrape_course(iis_announcement_state, 'http://www.acs.uns.ac.rs/sr/ism', 'iis')
 
         print('\n')
 
         nais_item = items[2]
         nais_announcement_state = nais_item.get('announcement_state', 'N/A')
-        scrape_nais(nais_announcement_state)
+        scrape_course(nais_announcement_state, 'http://www.acs.uns.ac.rs/sr/nais', 'nais')
 
     else:
         print("No items found")
