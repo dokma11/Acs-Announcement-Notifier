@@ -74,10 +74,18 @@ def format_response(response, last_h2, last_em, last_p, subject_for):
                     detailed_content_div = detailed_soup.find('div', class_='node clear-block')
 
                     if detailed_content_div:
-                        p_tag = detailed_content_div.find('p')
+                        p_tags = detailed_content_div.find_all('p')
+                        print('Detailed p_tags length: ', len(p_tags))
+                        if p_tags:
+                            if len(p_tags) > 1:
+                                p_tag = ''
+                                for p in p_tags:
+                                    p_tag += p.get_text(strip=True) + '<br><br>'
+                            else:
+                                p_tag = p_tags[0].get_text(strip=True)
 
-                        if p_tag:
-                            print(p_tag.get_text(strip=True))
+                            print('p tag detailed: ', p_tag)
+                            detailed_paragraphs = True
                         else:
                             print('No <p> tag found within the <div>')
 
@@ -86,6 +94,7 @@ def format_response(response, last_h2, last_em, last_p, subject_for):
                         if a_tag:
                             print(a_tag)
                             encoded_url = a_tag.replace(' ', '%20')
+                            print('Encoded url: ', encoded_url)
                         else:
                             print('No <a> tag found within the <div>')
                             encoded_url = ''
