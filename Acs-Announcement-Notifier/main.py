@@ -30,7 +30,7 @@ def scrape_course(course_as, course_url, subject_for):
 
 def format_response(response, last_h2, last_em, last_p, subject_for):
     soup = bs4.BeautifulSoup(response.text, 'html.parser')
-    content_div = soup.find('div', class_='view-content')
+    content_div = soup.find('div', class_='views-row views-row-1 views-row-odd views-row-first')
 
     if content_div:
         p_tag = content_div.find('p')
@@ -55,7 +55,15 @@ def format_response(response, last_h2, last_em, last_p, subject_for):
         if (h2_tag.get_text(strip=True) != last_h2 or em_tag.get_text(strip=True) != last_em or
                 p_tag.get_text(strip=True) != last_p):
 
-            li_tag = content_div.find('li', class_='upload_attachments first last')
+            if content_div.find('li', class_='upload_attachments first last'):
+                li_tag = content_div.find('li', class_='upload_attachments first last')
+            elif content_div.find('li', class_='node_read_more first last'):
+                li_tag = content_div.find('li', class_='node_read_more first last')
+            else:
+                # Just put a radnom value so the rest of the script could work
+                li_tag = content_div.find('li', class_='upload_attachments first last')
+
+            detailed_paragraphs = False
 
             if li_tag:
                 link = li_tag.find('a').get('href')
