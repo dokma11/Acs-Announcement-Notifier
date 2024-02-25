@@ -110,19 +110,28 @@ def format_response(response, last_h2, last_em, last_p, subject_for):
                 encoded_url = ''
 
             email_subject = 'ACS-Announcement'
-            email_body = (f'{h2_tag.get_text(strip=True)}<br>{em_tag.get_text(strip=True)}<br><br>'
-                          f'{p_tag.get_text(strip=True)}<br><br>{encoded_url}')
+
+            if detailed_paragraphs:
+                email_body = (f'{h2_tag.get_text(strip=True)}<br>{em_tag.get_text(strip=True)}<br><br>'
+                              f'{p_tag}<br><br>{encoded_url}')
+            else:
+                email_body = (f'{h2_tag.get_text(strip=True)}<br>{em_tag.get_text(strip=True)}<br><br>'
+                              f'{p_tag.get_text(strip=True)}<br><br>{encoded_url}')
+
+            print('Email body: ', email_body)
 
             send_email(email_subject, email_body.encode('utf-8'), 'vule.dok@gmail.com')
             send_email(email_subject, email_body.encode('utf-8'), 'kuzminacn@gmail.com')
             print('Emails sent')
 
             current_state = f"{last_h2}|{last_em}|{last_p}"
+            print('Current state: ', current_state)
             # Have to get less detailed tags so that the comparisons would work properly
             p_tag = content_div.find('p')
             h2_tag = content_div.find('h2')
             em_tag = content_div.find('em')
             next_state = f"{h2_tag.get_text(strip=True)}|{em_tag.get_text(strip=True)}|{p_tag.get_text(strip=True)}"
+            print('Next state: ', next_state)
 
             if subject_for == 'sbp':
                 table.delete_item(
