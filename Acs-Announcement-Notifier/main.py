@@ -180,19 +180,19 @@ def lambda_handler(event, context):
 
     if 'Items' in scan_response:
         items = scan_response['Items']
-        sbp_item = items[1]
-        sbp_announcement_state = sbp_item.get('announcement_state', 'N/A')
-        scrape_course(sbp_announcement_state, 'http://www.acs.uns.ac.rs/sr/sbp', 'sbp')
 
-        iis_item = items[0]
-        iis_announcement_state = iis_item.get('announcement_state', 'N/A')
-        scrape_course(iis_announcement_state, 'http://www.acs.uns.ac.rs/sr/ism', 'iis')
-
-        print('\n')
-
-        nais_item = items[2]
-        nais_announcement_state = nais_item.get('announcement_state', 'N/A')
-        scrape_course(nais_announcement_state, 'http://www.acs.uns.ac.rs/sr/nais', 'nais')
+        for item in items:
+            if item.get('announcement_id', 'N/A') == 0:
+                sbp_announcement_state = item.get('announcement_state', 'N/A')
+                scrape_course(sbp_announcement_state, 'http://www.acs.uns.ac.rs/sr/sbp', 'sbp')
+            elif item.get('announcement_id', 'N/A') == 1:
+                iis_announcement_state = item.get('announcement_state', 'N/A')
+                scrape_course(iis_announcement_state, 'http://www.acs.uns.ac.rs/sr/ism', 'iis')
+            elif item.get('announcement_id', 'N/A') == 2:
+                nais_announcement_state = item.get('announcement_state', 'N/A')
+                scrape_course(nais_announcement_state, 'http://www.acs.uns.ac.rs/sr/nais', 'nais')
+            else:
+                print('Error reading data provided by DynamoDB')
 
     else:
-        print("No items found")
+        print('No items found')
