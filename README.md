@@ -7,3 +7,12 @@ When it sees a new announcement it sends an email with content of the new announ
 
 The app is integrated with AWS Lambda function, DynamoDB and AWS CloudWatch, so it could run every 10 minutes and notify
 when the new updates occur. 
+
+
+![img.png](img.png)
+
+![img_3.png](img_3.png)
+
+![img_1.png](img_1.png)
+
+![img_2.png](img_2.png)
