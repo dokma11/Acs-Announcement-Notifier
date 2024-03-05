@@ -74,6 +74,16 @@ def format_response(response, last_h2, last_em, last_p, subject_for):
                     detailed_content_div = detailed_soup.find('div', class_='node clear-block')
 
                     if detailed_content_div:
+
+                        order_of_elements = []
+                        new_content_div = detailed_content_div.find('div', class_='content')
+                        for index, element in enumerate(new_content_div.children):
+                            if element.name:
+                                order_of_elements.append((index, element.name))
+
+                        for index, tag_name in order_of_elements:
+                            print(f"Element {index}: {tag_name}")
+
                         p_tags = detailed_content_div.find_all('p')
                         print('Detailed p_tags length: ', len(p_tags))
                         if p_tags:
@@ -98,6 +108,36 @@ def format_response(response, last_h2, last_em, last_p, subject_for):
                         else:
                             print('No <a> tag found within the <div>')
                             encoded_url = ''
+
+                        ul_tags = detailed_content_div.find_all('ul')
+
+                        if ul_tags:
+                            li_tag = ''
+                            for ul in ul_tags:
+                                li_tags = ul.find_all('li')
+                                for li in li_tags:
+                                    li_tag += '<hr>- ' + li.get_text(strip=True) + '<br>'
+                        else:
+                            print('No <ul> tag found within the <div>')
+
+                        final_body = ''
+                        p_i = 0
+                        u_i = 0
+                        for index, tag_name in order_of_elements:
+                            if tag_name == 'p':
+                                final_body += p_tags[p_i].get_text(strip=True) + '<br><br>'
+                                p_i += 1
+                            elif tag_name == 'ul':
+                                li_tag = ''
+                                li_tags = ul_tags[u_i].find_all('li')
+                                for li in li_tags:
+                                    li_tag += '&nbsp;- ' + li.get_text(strip=True) + '<br>'
+
+                                final_body += li_tag
+                                u_i += 1
+
+                        print('Final body je: ' + final_body)
+
                     else:
                         print('No <div> found')
                         encoded_url = ''
@@ -113,10 +153,10 @@ def format_response(response, last_h2, last_em, last_p, subject_for):
 
             if detailed_paragraphs:
                 email_body = (f'{h2_tag.get_text(strip=True)}<br>{em_tag.get_text(strip=True)}<br><br>'
-                              f'{p_tag}<br><br>{encoded_url}')
+                              f'{final_body}{encoded_url}')
             else:
                 email_body = (f'{h2_tag.get_text(strip=True)}<br>{em_tag.get_text(strip=True)}<br><br>'
-                              f'{p_tag.get_text(strip=True)}<br><br>{encoded_url}')
+                              f'{p_tag.get_text(strip=True)}{li_tag}<br>{encoded_url}')
 
             print('Email body: ', email_body)
 
