@@ -125,14 +125,16 @@ def format_response(response, last_h2, last_em, last_p, subject_for):
                         u_i = 0
                         for index, tag_name in order_of_elements:
                             if tag_name == 'p':
-                                final_body += p_tags[p_i].get_text(strip=True) + '<br><br>'
+                                final_body += '<br><br>' + p_tags[p_i].get_text(strip=True)
                                 p_i += 1
                             elif tag_name == 'ul':
                                 li_tag = ''
                                 li_tags = ul_tags[u_i].find_all('li')
                                 for li in li_tags:
-                                    li_tag += '&nbsp;- ' + li.get_text(strip=True) + '<br>'
-
+                                    if index == len(li_tags) - 1:
+                                        li_tag += '    - ' + li.get_text(strip=True)
+                                    else:
+                                        li_tag += '    - ' + li.get_text(strip=True) + '<br>'
                                 final_body += li_tag
                                 u_i += 1
 
@@ -152,8 +154,8 @@ def format_response(response, last_h2, last_em, last_p, subject_for):
             email_subject = 'ACS-Announcement'
 
             if detailed_paragraphs:
-                email_body = (f'{h2_tag.get_text(strip=True)}<br>{em_tag.get_text(strip=True)}<br><br>'
-                              f'{final_body}{encoded_url}')
+                email_body = (f'{h2_tag.get_text(strip=True)}<br>{em_tag.get_text(strip=True)}'
+                              f'{final_body}<br><br>{encoded_url}')
             else:
                 email_body = (f'{h2_tag.get_text(strip=True)}<br>{em_tag.get_text(strip=True)}<br><br>'
                               f'{p_tag.get_text(strip=True)}{li_tag}<br>{encoded_url}')
