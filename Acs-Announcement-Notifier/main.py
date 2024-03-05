@@ -131,10 +131,7 @@ def format_response(response, last_h2, last_em, last_p, subject_for):
                                 li_tag = ''
                                 li_tags = ul_tags[u_i].find_all('li')
                                 for li in li_tags:
-                                    if index == len(li_tags) - 1:
-                                        li_tag += '    - ' + li.get_text(strip=True)
-                                    else:
-                                        li_tag += '    - ' + li.get_text(strip=True) + '<br>'
+                                    li_tag += '<br> - ' + li.get_text(strip=True)
                                 final_body += li_tag
                                 u_i += 1
 
